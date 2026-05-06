@@ -14,7 +14,7 @@ body{margin:0;background:var(--bg);color:var(--text);padding:0}
 .info-bar{display:flex;gap:8px;padding:8px 12px;background:#15803d;font-size:13px;overflow-x:auto}
 .info-bar span{background:#166534;padding:4px 10px;border-radius:20px;white-space:nowrap}
 .tabs{display:flex;background:var(--card);margin:0 12px;border-radius:12px 12px 0 0;overflow:hidden}
-.tabs button{flex:1;background:transparent;border:none;color:var(--text);padding:12px;font-weight:600;font-size:14px}
+.tabs button{flex:1;background:transparent;border:none;color:var(--text);padding:12px;font-weight:600;font-size:13px}
 .tabs button.active{background:#0f172a;color:var(--hijau)}
 .wrap{padding:12px}
 .card{background:var(--card);padding:15px;border-radius:12px;margin-bottom:12px}
@@ -50,6 +50,8 @@ th{background:#0f172a}
 .hide{display:none}
 .flex{display:flex;gap:8px}
 .judul-section{font-weight:bold;margin:15px 0 8px;font-size:16px}
+.checkbox-wrap{display:flex;align-items:center;gap:10px;margin:15px 0}
+.checkbox-wrap input{width:auto;margin:0}
 </style>
 </head>
 <body>
@@ -105,7 +107,10 @@ th{background:#0f172a}
           <b>Rp <span id="total">0</span></b>
         </div>
         <select id="bayar" style="margin-top:12px"><option>Cash</option><option>QRIS</option></select>
-        <label style="display:block;margin:10px 0"><input type="checkbox" id="lunas"> Sudah Bayar</label>
+        <label class="checkbox-wrap">
+          <input type="checkbox" id="lunas">
+          <span>Sudah Bayar</span>
+        </label>
         <button class="btn btn-hijau" onclick="selesai()">💳 PROSES BAYAR</button>
       </div>
     </div>
@@ -114,7 +119,6 @@ th{background:#0f172a}
     <div id="menuBox" class="hide">
       <div class="card">
         <h3>Tambah Menu/Makanan</h3>
-        <input type="hidden" id="kategoriMenu" value="Menu">
         <input id="namaMenu" placeholder="Nama Menu/Makanan">
         <input id="hargaMenu" type="number" placeholder="Harga">
         <button class="btn btn-hijau" onclick="tambahItem('menu')">+ SIMPAN MENU</button>
@@ -128,7 +132,6 @@ th{background:#0f172a}
     <div id="rokokBox" class="hide">
       <div class="card">
         <h3>Tambah Rokok</h3>
-        <input type="hidden" id="kategoriRokok" value="Rokok">
         <input id="namaRokok" placeholder="Nama Rokok">
         <input id="hargaRokok" type="number" placeholder="Harga">
         <button class="btn btn-hijau" onclick="tambahItem('rokok')">+ SIMPAN ROKOK</button>
@@ -176,11 +179,11 @@ const TANGGAL_EXPIRED = '2026-12-31';
 const LISENSI = 'WKP-KBL-01';
 const HARGA_PERPANJANG = 200000;
 
-let DB = JSON.parse(localStorage.getItem('kaboel-final-v6') || '{"menu":[],"rokok":[],"trx":[]}');
+let DB = JSON.parse(localStorage.getItem('kaboel-final-v7') || '{"menu":[],"rokok":[],"trx":[]}');
 let cart = [];
-let kasir = 'An';
+let kasir = localStorage.getItem('kaboel-kasir') || 'An';
 
-function save(){ localStorage.setItem('kaboel-final-v6', JSON.stringify(DB)); }
+function save(){ localStorage.setItem('kaboel-final-v7', JSON.stringify(DB)); }
 
 function cekExpired(){
   const sisa = Math.ceil((new Date(TANGGAL_EXPIRED) - new Date()) / (1000*60*60*24));
@@ -194,15 +197,34 @@ function cekExpired(){
   return false;
 }
 
+// AUTO LOGIN KALO UDAH PERNAH LOGIN
+window.onload = function(){
+  if(cekExpired()) return;
+  if(localStorage.getItem('kaboel-login') === 'true'){
+    loginPage.classList.add('hide');
+    appPage.classList.remove('hide');
+    namaKasir.innerText = kasir;
+    updateTgl(); updateShift(); render();
+  }
+}
+
 function masuk(){
   if(cekExpired()) return;
   kasir = user.value || 'An';
+  localStorage.setItem('kaboel-kasir', kasir);
+  localStorage.setItem('kaboel-login', 'true');
   namaKasir.innerText = kasir;
   loginPage.classList.add('hide');
   appPage.classList.remove('hide');
   updateTgl(); updateShift(); render();
 }
-function keluar(){ loginPage.classList.remove('hide'); appPage.classList.add('hide'); }
+
+function keluar(){ 
+  localStorage.setItem('kaboel-login', 'false');
+  loginPage.classList.remove('hide'); 
+  appPage.classList.add('hide'); 
+}
+
 function updateTgl(){ infoTgl.innerText = new Date().toLocaleDateString('id-ID'); }
 function updateShift(){ infoShift.innerText = shift.value; }
 
@@ -246,7 +268,6 @@ function tambahKeCart(id){
 function hapusDariCart(idx){ cart.splice(idx,1); render(); }
 
 function render(){
-  // Gabung Menu + Rokok di Tab Kasir
   const semuaItem = [...DB.menu,...DB.rokok];
   tombolMenu.innerHTML = semuaItem.map(m=>`
     <button class="menu-btn" onclick="tambahKeCart(${m.id})">
@@ -256,7 +277,6 @@ function render(){
     </button>
   `).join('') || '<p style="grid-column:span 2;text-align:center;opacity:.6">Menu kosong</p>';
 
-  // List Menu
   listMenu.innerHTML = DB.menu.map(m=>`
     <div class="item-keranjang">
       <div class="item-atas">
@@ -267,7 +287,6 @@ function render(){
     </div>
   `).join('') || '<div class="item-keranjang">Kosong</div>';
 
-  // List Rokok
   listRokok.innerHTML = DB.rokok.map(m=>`
     <div class="item-keranjang">
       <div class="item-atas">
@@ -278,7 +297,6 @@ function render(){
     </div>
   `).join('') || '<div class="item-keranjang">Kosong</div>';
 
-  // Keranjang
   daftar.innerHTML = cart.map((i,k)=>`
     <div class="item-keranjang">
       <div class="item-atas">
@@ -339,7 +357,7 @@ function excel(){
 function waOwner(){ window.open(`https://wa.me/${WA_OWNER}`); }
 function hapusData(){ if(confirm('Hapus semua transaksi? Menu & Rokok tidak ikut terhapus')){ DB.trx=[]; save(); renderLaporan(); } }
 
-cekExpired(); updateTgl();
+updateTgl();
 </script>
 </body>
-  </html>
+      </html>
