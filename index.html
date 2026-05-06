@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Warkop Kaboel</title>
 <style>
-:root{--hijau:#16a34a;--biru:#2563eb;--merah:#dc2626;--bg:#0f172a;--card:#1e293b;--border:#334155;--text:#e2e8f0;--orange:#f59e0b}
+:root{--hijau:#16a34a;--biru:#2563eb;--merah:#dc2626;--bg:#0f172a;--card:#1e293b;--border:#334155;--text:#e2e8f0;--orange:#f59e0b;--ijo-harga:#22c55e}
 *{box-sizing:border-box;font-family:system-ui,sans-serif}
 body{margin:0;background:var(--bg);color:var(--text);padding:0}
 .header{background:var(--hijau);padding:12px;display:flex;justify-content:space-between;align-items:center}
@@ -19,26 +19,36 @@ body{margin:0;background:var(--bg);color:var(--text);padding:0}
 .wrap{padding:12px}
 .card{background:var(--card);padding:15px;border-radius:12px;margin-bottom:12px}
 input,select{width:100%;padding:12px;margin:6px 0;font-size:16px;border:1px solid var(--border);border-radius:8px;background:#0f172a;color:var(--text)}
-button.btn{width:100%;padding:12px;margin:6px 0;font-size:16px;border:none;border-radius:8px;font-weight:bold;color:#fff}
+button.btn{width:100%;padding:14px;margin:6px 0;font-size:16px;border:none;border-radius:8px;font-weight:bold;color:#fff}
 .btn-biru{background:var(--biru)}
 .btn-hijau{background:var(--hijau)}
 .btn-merah{background:var(--merah)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.grid button{background:#334155;padding:15px;border:1px solid var(--border);border-radius:8px;color:var(--text)}
-.list{border:1px solid var(--border);border-radius:8px;margin:8px 0;max-height:200px;overflow:auto}
-.item{padding:10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
-.item:last-child{border:none}
-.total{font-size:22px;font-weight:bold;text-align:right;margin:10px 0}
+.menu-btn{background:#334155;padding:12px;border:1px solid var(--border);border-radius:8px;color:var(--text);text-align:left;position:relative;min-height:70px}
+.menu-btn .kategori{position:absolute;top:4px;left:6px;font-size:10px;background:var(--biru);padding:1px 6px;border-radius:4px}
+.menu-btn .nama{font-size:14px;margin-top:10px;font-weight:600}
+.menu-btn .harga{font-size:16px;color:var(--ijo-harga);font-weight:bold;margin-top:4px}
+.list{margin:8px 0}
+.item-keranjang{padding:12px 0;border-bottom:1px solid var(--border)}
+.item-keranjang:last-child{border:none}
+.item-atas{display:flex;justify-content:space-between;align-items:flex-start}
+.item-atas .nama{font-weight:600}
+.item-atas .hapus{color:var(--merah);cursor:pointer;font-size:18px;font-weight:bold}
+.item-bawah{font-size:13px;opacity:.8;margin-top:2px}
+.item-total{color:var(--ijo-harga);font-weight:bold;font-size:16px}
+.total-box{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}
+.total-box span{font-size:16px}
+.total-box b{font-size:24px;color:var(--ijo-harga)}
 .lisensi{border:2px solid var(--orange);border-radius:8px;padding:10px;background:#1c1917}
 .lisensi b{color:var(--orange)}
 .stat{display:flex;gap:10px}
 .stat > div{flex:1;background:#0f172a;padding:12px;border-radius:8px}
-.stat b{font-size:18px;display:block;margin-top:4px}
-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.stat b{font-size:18px;display:block;margin-top:4px;color:var(--ijo-harga)}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
 th,td{border:1px solid var(--border);padding:6px;text-align:left}
 th{background:#0f172a}
 .hide{display:none}
-.flex{display:flex;justify-content:space-between;align-items:center}
+.flex{display:flex;gap:8px}
 </style>
 </head>
 <body>
@@ -62,7 +72,7 @@ th{background:#0f172a}
     <h2>☕ WARKOP KABOEL</h2>
     <button onclick="keluar()">Logout</button>
   </div>
-  
+
   <div class="info-bar">
     <span>👤 <b id="namaKasir">An</b></span>
     <span>⏰ <b id="infoShift">Sore</b></span>
@@ -80,16 +90,19 @@ th{background:#0f172a}
     <div id="kasirBox">
       <div class="card">
         <select id="shift" onchange="updateShift()"><option>Pagi</option><option>Siang</option><option selected>Sore</option></select>
-        <div style="margin-top:10px;font-weight:bold">Pilih Menu:</div>
-        <div class="grid" id="tombolMenu"></div>
-        
-        <div style="margin-top:10px;font-weight:bold">Keranjang:</div>
-        <div class="list" id="daftar"></div>
-        <div class="total">Total: Rp <span id="total">0</span></div>
+        <div class="grid" id="tombolMenu" style="margin-top:12px"></div>
+      </div>
 
-        <select id="bayar"><option>Cash</option><option>QRIS</option></select>
+      <div class="card">
+        <div style="font-weight:bold;margin-bottom:8px">🛒 Keranjang</div>
+        <div class="list" id="daftar"></div>
+        <div class="total-box">
+          <span>Total Bayar</span>
+          <b>Rp <span id="total">0</span></b>
+        </div>
+        <select id="bayar" style="margin-top:12px"><option>Cash</option><option>QRIS</option></select>
         <label style="display:block;margin:10px 0"><input type="checkbox" id="lunas"> Sudah Bayar</label>
-        <button class="btn btn-biru" onclick="selesai()">SIMPAN & LAPOR WA OWNER</button>
+        <button class="btn btn-hijau" onclick="selesai()">💳 PROSES BAYAR</button>
       </div>
     </div>
 
@@ -97,10 +110,11 @@ th{background:#0f172a}
     <div id="menuBox" class="hide">
       <div class="card">
         <h3>Tambah Menu/Rokok</h3>
+        <select id="kategori"><option>Minuman</option><option>Rokok</option><option>Makanan</option></select>
         <input id="nama" placeholder="Nama Menu/Rokok">
         <input id="harga" type="number" placeholder="Harga">
         <button class="btn btn-hijau" onclick="tambahMenu()">+ SIMPAN MENU</button>
-        
+
         <h3 style="margin-top:20px">Daftar Menu</h3>
         <div class="list" id="listMenu"></div>
       </div>
@@ -116,7 +130,7 @@ th{background:#0f172a}
           Sisa: <span id="sisaHari">240</span> Hari<br>
           Owner: 0895351432524
         </div>
-        
+
         <div class="flex" style="margin-top:12px">
           <button class="btn btn-biru" style="flex:1" onclick="excel()">📊 Export</button>
           <button class="btn btn-hijau" style="flex:1" onclick="waOwner()">📱 WA Owner</button>
@@ -138,24 +152,22 @@ th{background:#0f172a}
 </div>
 
 <script>
-// KONFIG - GANTI INI
 const NAMA_WARKOP = 'WARKOP KABOEL';
-const WA_OWNER = '62895351432524'; // 0895351432524
+const WA_OWNER = '62895351432524';
 const TANGGAL_EXPIRED = '2026-12-31';
 const LISENSI = 'WKP-KBL-01';
 const HARGA_PERPANJANG = 200000;
 
-let DB = JSON.parse(localStorage.getItem('kaboel-v3') || '{"menu":[],"trx":[]}');
+let DB = JSON.parse(localStorage.getItem('kaboel-final') || '{"menu":[],"trx":[]}');
 let cart = [];
 let kasir = 'An';
 
-function save(){ localStorage.setItem('kaboel-v3', JSON.stringify(DB)); }
+function save(){ localStorage.setItem('kaboel-final', JSON.stringify(DB)); }
 
-// LISENSI
 function cekExpired(){
   const sisa = Math.ceil((new Date(TANGGAL_EXPIRED) - new Date()) / (1000*60*60*24));
   tglExpired.innerText = new Date(TANGGAL_EXPIRED).toLocaleDateString('id-ID');
-  sisaHari.innerText = sisa > 0 ? sisa : 0;
+  sisaHari.innerText = sisa > 0? sisa : 0;
   if(sisa <= 0){
     document.body.innerHTML = `<div class="wrap"><div class="card"><h2>Lisensi ${LISENSI} Expired</h2>
     <button class="btn btn-hijau" onclick="window.open('https://wa.me/${WA_OWNER}?text=Mas mau perpanjang ${LISENSI} ${HARGA_PERPANJANG}/bulan')">PERPANJANG VIA WA</button></div></div>`;
@@ -164,7 +176,6 @@ function cekExpired(){
   return false;
 }
 
-// LOGIN
 function masuk(){
   if(cekExpired()) return;
   kasir = user.value || 'An';
@@ -177,40 +188,72 @@ function keluar(){ loginPage.classList.remove('hide'); appPage.classList.add('hi
 function updateTgl(){ infoTgl.innerText = new Date().toLocaleDateString('id-ID'); }
 function updateShift(){ infoShift.innerText = shift.value; }
 
-// TAB
 function gantiTab(tab){
-  tabKasir.className = tab==='kasir'?'active':''; 
-  tabMenu.className = tab==='menu'?'active':''; 
+  tabKasir.className = tab==='kasir'?'active':'';
+  tabMenu.className = tab==='menu'?'active':'';
   tabLaporan.className = tab==='laporan'?'active':'';
-  kasirBox.classList.toggle('hide',tab!=='kasir'); 
-  menuBox.classList.toggle('hide',tab!=='menu'); 
+  kasirBox.classList.toggle('hide',tab!=='kasir');
+  menuBox.classList.toggle('hide',tab!=='menu');
   laporanBox.classList.toggle('hide',tab!=='laporan');
   if(tab==='laporan') renderLaporan();
 }
 
-// MENU
 function tambahMenu(){
-  const n = nama.value.trim(), h = parseInt(harga.value);
+  const k = kategori.value, n = nama.value.trim(), h = parseInt(harga.value);
   if(!n||!h) return alert('Isi nama & harga');
-  DB.menu.push({id:Date.now(),n,h}); save();
+  DB.menu.push({id:Date.now(),k,n,h}); save();
   nama.value=''; harga.value=''; render();
 }
 function hapusMenu(id){ DB.menu = DB.menu.filter(m=>m.id!==id); save(); render(); }
-function tambahKeCart(id){ const i = DB.menu.find(m=>m.id===id); if(i) cart.push({...i,qty:1}); render(); }
+
+function tambahKeCart(id){
+  const i = DB.menu.find(m=>m.id===id);
+  const ada = cart.find(c=>c.id===id);
+  if(ada){ ada.qty++; } else { cart.push({...i,qty:1}); }
+  render();
+}
+function hapusDariCart(idx){ cart.splice(idx,1); render(); }
 
 function render(){
-  // Tombol menu
-  tombolMenu.innerHTML = DB.menu.map(m=>`<button onclick="tambahKeCart(${m.id})">${m.n}<br>${m.h}</button>`).join('') || '<p style="grid-column:span 2">Menu kosong</p>';
-  
-  // List menu
-  listMenu.innerHTML = DB.menu.map(m=>`<div class="item"><span>${m.n} ${m.h}</span><span onclick="hapusMenu(${m.id})" style="color:var(--merah)">hapus</span></div>`).join('') || '<div class="item">Kosong</div>';
-  
-  // Keranjang
-  daftar.innerHTML = cart.map((i,k)=>`<div class="item"><span>${i.n} ${i.h}</span><span onclick="cart.splice(${k},1);render()" style="color:var(--merah)">x</span></div>`).join('') || '<div class="item">Kosong</div>';
-  total.innerText = cart.reduce((a,b)=>a+b.h,0).toLocaleString('id-ID');
+  // Tombol menu 100% mirip Warkop Singo
+  tombolMenu.innerHTML = DB.menu.map(m=>`
+    <button class="menu-btn" onclick="tambahKeCart(${m.id})">
+      <div class="kategori">${m.k}</div>
+      <div class="nama">${m.n}</div>
+      <div class="harga">Rp ${m.h.toLocaleString('id-ID')}</div>
+    </button>
+  `).join('') || '<p style="grid-column:span 2;text-align:center;opacity:.6">Menu kosong</p>';
+
+  // List menu di tab Menu
+  listMenu.innerHTML = DB.menu.map(m=>`
+    <div class="item-keranjang">
+      <div class="item-atas">
+        <span><b>${m.k}</b> - ${m.n}</span>
+        <span class="hapus" onclick="hapusMenu(${m.id})">x</span>
+      </div>
+      <div class="item-bawah" style="color:var(--ijo-harga)">Rp ${m.h.toLocaleString('id-ID')}</div>
+    </div>
+  `).join('') || '<div class="item-keranjang">Kosong</div>';
+
+  // Keranjang 100% mirip Warkop Singo
+  daftar.innerHTML = cart.map((i,k)=>`
+    <div class="item-keranjang">
+      <div class="item-atas">
+        <div>
+          <div class="nama">${i.n}</div>
+          <div class="item-bawah">Rp ${i.h.toLocaleString('id-ID')} x ${i.qty}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="item-total">Rp ${(i.h*i.qty).toLocaleString('id-ID')}</div>
+          <div class="hapus" onclick="hapusDariCart(${k})">x</div>
+        </div>
+      </div>
+    </div>
+  `).join('') || '<div class="item-keranjang" style="text-align:center;opacity:.6">Keranjang kosong</div>';
+
+  total.innerText = cart.reduce((a,b)=>a+b.h*b.qty,0).toLocaleString('id-ID');
 }
 
-// TRANSAKSI
 function selesai(){
   if(!cart.length) return alert('Keranjang kosong');
   const now = new Date();
@@ -218,43 +261,41 @@ function selesai(){
     tgl: now.toLocaleDateString('id-ID') + ', ' + now.toLocaleTimeString('id-ID').slice(0,8),
     kasir: kasir,
     shift: shift.value,
-    items: cart,
-    total: cart.reduce((a,b)=>a+b.h,0),
+    items: cart.map(i=>({...i})),
+    total: cart.reduce((a,b)=>a+b.h*b.qty,0),
     metode: bayar.value,
     lunas: lunas.checked
   };
   DB.trx.push(t); save();
-  
-  const itemStr = cart.map(i=>`${i.n}(${i.h})`).join(', ');
+
+  const itemStr = cart.map(i=>`${i.n} x${i.qty}`).join(', ');
   const teks = `*${NAMA_WARKOP}*%0A${t.tgl} ${t.shift}%0AKasir: ${t.kasir}%0AItems: ${itemStr}%0ATotal: Rp ${t.total.toLocaleString('id-ID')}%0A${t.metode} | ${t.lunas?'LUNAS':'BELUM'}%0A${LISENSI}`;
   window.open(`https://wa.me/${WA_OWNER}?text=${teks}`);
-  
+
   cart=[]; lunas.checked=false; render(); renderLaporan();
 }
 
-// LAPORAN
 function renderLaporan(){
   const hariIni = new Date().toLocaleDateString('id-ID');
   const trxHariIni = DB.trx.filter(t=>t.tgl.includes(hariIni));
   omset.innerText = 'Rp ' + trxHariIni.reduce((a,b)=>a+b.total,0).toLocaleString('id-ID');
   jmlTrx.innerText = trxHariIni.length;
-  
+
   tabelLaporan.innerHTML = DB.trx.slice().reverse().map(t=>
-    t.items.map(i=>`<tr><td>${t.tgl}</td><td>${t.kasir}</td><td>${t.shift}</td><td>${i.n}</td><td>1</td><td>${t.metode}</td><td>Rp ${i.h.toLocaleString('id-ID')}</td></tr>`).join('')
+    t.items.map(i=>`<tr><td>${t.tgl}</td><td>${t.kasir}</td><td>${t.shift}</td><td>${i.n}</td><td>${i.qty}</td><td>${t.metode}</td><td>Rp ${(i.h*i.qty).toLocaleString('id-ID')}</td></tr>`).join('')
   ).join('') || '<tr><td colspan="7" style="text-align:center">Belum ada transaksi</td></tr>';
 }
 
 function excel(){
-  let csv = 'Tanggal,Kasir,Shift,Menu,Qty,Bayar,Total\n';
-  DB.trx.forEach(t=> t.items.forEach(i=> csv += `"${t.tgl}",${t.kasir},${t.shift},"${i.n}",1,${t.metode},${i.h}\n`));
-  const a = document.createElement('a'); 
-  a.href = 'data:text/csv,' + encodeURIComponent(csv); 
+  let csv = 'Tanggal,Kasir,Shift,Menu,Qty,Harga,Subtotal,Bayar,Status\n';
+  DB.trx.forEach(t=> t.items.forEach(i=> csv += `"${t.tgl}",${t.kasir},${t.shift},"${i.n}",${i.qty},${i.h},${i.h*i.qty},${t.metode},${t.lunas?'LUNAS':'BELUM'}\n`));
+  const a = document.createElement('a');
+  a.href = 'data:text/csv,' + encodeURIComponent(csv);
   a.download = 'laporan-kaboel.csv'; a.click();
 }
 function waOwner(){ window.open(`https://wa.me/${WA_OWNER}`); }
-function hapusData(){ if(confirm('Hapus semua transaksi?')){ DB.trx=[]; save(); renderLaporan(); } }
+function hapusData(){ if(confirm('Hapus semua transaksi? Menu tidak ikut terhapus')){ DB.trx=[]; save(); renderLaporan(); } }
 
-// INIT
 cekExpired(); updateTgl();
 </script>
 </body>
