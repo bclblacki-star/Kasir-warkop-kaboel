@@ -56,7 +56,6 @@ th{background:#0f172a}
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="loginPage">
   <div class="header"><h2>☕ WARKOP KABOEL</h2></div>
   <div class="wrap">
@@ -69,7 +68,6 @@ th{background:#0f172a}
   </div>
 </div>
 
-<!-- APP -->
 <div id="appPage" class="hide">
   <div class="header">
     <h2>☕ WARKOP KABOEL</h2>
@@ -90,11 +88,9 @@ th{background:#0f172a}
   </div>
 
   <div class="wrap">
-    <!-- TAB KASIR -->
     <div id="kasirBox">
       <div class="card">
         <select id="shift" onchange="updateShift()"><option>Pagi</option><option>Siang</option><option selected>Sore</option></select>
-        
         <div class="judul-section">Pilih Menu & Rokok:</div>
         <div class="grid" id="tombolMenu"></div>
       </div>
@@ -115,39 +111,34 @@ th{background:#0f172a}
       </div>
     </div>
 
-    <!-- TAB MENU -->
     <div id="menuBox" class="hide">
       <div class="card">
         <h3>Tambah Menu/Makanan</h3>
         <input id="namaMenu" placeholder="Nama Menu/Makanan">
         <input id="hargaMenu" type="number" placeholder="Harga">
         <button class="btn btn-hijau" onclick="tambahItem('menu')">+ SIMPAN MENU</button>
-
         <h3 style="margin-top:20px">Daftar Menu</h3>
         <div class="list" id="listMenu"></div>
       </div>
     </div>
 
-    <!-- TAB ROKOK -->
     <div id="rokokBox" class="hide">
       <div class="card">
         <h3>Tambah Rokok</h3>
         <input id="namaRokok" placeholder="Nama Rokok">
         <input id="hargaRokok" type="number" placeholder="Harga">
         <button class="btn btn-hijau" onclick="tambahItem('rokok')">+ SIMPAN ROKOK</button>
-
         <h3 style="margin-top:20px">Daftar Rokok</h3>
         <div class="list" id="listRokok"></div>
       </div>
     </div>
 
-    <!-- TAB LAPORAN -->
     <div id="laporanBox" class="hide">
       <div class="card">
         <div class="lisensi">
           <b>🔒 LISENSI AKTIF</b><br>
           Warkop: WARKOP KABOEL<br>
-          Aktif Sampai: <span id="tglExpired">04/05/2026</span><br>
+          Aktif Sampai: <span id="tglExpired"></span><br>
           Sisa: <span id="sisaHari"></span> Hari<br>
           Owner: 0895351432524
         </div>
@@ -173,9 +164,10 @@ th{background:#0f172a}
 </div>
 
 <script>
+// === INI DOANG YG LU EDIT KALO MAU GANTI EXPIRED ===
 const NAMA_WARKOP = 'WARKOP KABOEL';
 const WA_OWNER = '62895351432524';
-const TANGGAL_EXPIRED = '2026-12-31';
+const TANGGAL_EXPIRED = '2026-05-04'; // GANTI DISINI PROF
 const LISENSI = 'WKP-KBL-01';
 const HARGA_PERPANJANG = 200000;
 const KEY_DB = 'kaboel-final';
@@ -186,9 +178,11 @@ let kasir = localStorage.getItem('kaboel-kasir') || 'An';
 
 function save(){ localStorage.setItem(KEY_DB, JSON.stringify(DB)); }
 
+// INI YG UPDATE TANGGAL OTOMATIS
 function cekExpired(){
-  const sisa = Math.ceil((new Date(TANGGAL_EXPIRED) - new Date()) / (1000*60*60*24));
-  tglExpired.innerText = new Date(TANGGAL_EXPIRED).toLocaleDateString('id-ID');
+  const exp = new Date(TANGGAL_EXPIRED);
+  const sisa = Math.ceil((exp - new Date()) / (1000*60*60*24));
+  tglExpired.innerText = exp.toLocaleDateString('id-ID'); // OTOMATIS NGIKUT TANGGAL_EXPIRED
   sisaHari.innerText = sisa > 0? sisa : 0;
   if(sisa <= 0){
     document.body.innerHTML = `<div class="wrap"><div class="card"><h2>Lisensi ${LISENSI} Expired</h2>
@@ -317,7 +311,6 @@ function render(){
   total.innerText = cart.reduce((a,b)=>a+b.h*b.qty,0).toLocaleString('id-ID');
 }
 
-// UDAH GAK AUTO WA LAGI PROF
 function selesai(){
   if(!cart.length) return alert('Keranjang kosong');
   const now = new Date();
@@ -331,7 +324,6 @@ function selesai(){
     lunas: lunas.checked
   };
   DB.trx.push(t); save();
-  
   cart=[]; lunas.checked=false; render(); renderLaporan();
   alert('Transaksi Berhasil Disimpan!');
 }
@@ -360,4 +352,4 @@ function hapusData(){ if(confirm('Hapus semua transaksi? Menu & Rokok tidak ikut
 updateTgl();
 </script>
 </body>
-  </html>
+              </html>
