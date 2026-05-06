@@ -11,10 +11,10 @@ body{margin:0;background:var(--bg);color:var(--text);padding:0}
 .header{background:var(--hijau);padding:12px;display:flex;justify-content:space-between;align-items:center}
 .header h2{margin:0;font-size:20px}
 .header button{background:transparent;border:1px solid #fff;color:#fff;padding:6px 12px;border-radius:20px}
-.info-bar{display:flex;gap:8px;padding:8px 12px;background:#15803d;font-size:13px}
-.info-bar span{background:#166534;padding:4px 10px;border-radius:20px}
+.info-bar{display:flex;gap:8px;padding:8px 12px;background:#15803d;font-size:13px;overflow-x:auto}
+.info-bar span{background:#166534;padding:4px 10px;border-radius:20px;white-space:nowrap}
 .tabs{display:flex;background:var(--card);margin:0 12px;border-radius:12px 12px 0 0;overflow:hidden}
-.tabs button{flex:1;background:transparent;border:none;color:var(--text);padding:12px;font-weight:600}
+.tabs button{flex:1;background:transparent;border:none;color:var(--text);padding:12px;font-weight:600;font-size:14px}
 .tabs button.active{background:#0f172a;color:var(--hijau)}
 .wrap{padding:12px}
 .card{background:var(--card);padding:15px;border-radius:12px;margin-bottom:12px}
@@ -49,6 +49,7 @@ th,td{border:1px solid var(--border);padding:6px;text-align:left}
 th{background:#0f172a}
 .hide{display:none}
 .flex{display:flex;gap:8px}
+.judul-section{font-weight:bold;margin:15px 0 8px;font-size:16px}
 </style>
 </head>
 <body>
@@ -81,7 +82,8 @@ th{background:#0f172a}
 
   <div class="tabs">
     <button id="tabKasir" class="active" onclick="gantiTab('kasir')">💰 Kasir</button>
-    <button id="tabMenu" onclick="gantiTab('menu')">➕ Menu</button>
+    <button id="tabMenu" onclick="gantiTab('menu')">🍜 Menu</button>
+    <button id="tabRokok" onclick="gantiTab('rokok')">🚬 Rokok</button>
     <button id="tabLaporan" onclick="gantiTab('laporan')">📊 Laporan</button>
   </div>
 
@@ -90,7 +92,9 @@ th{background:#0f172a}
     <div id="kasirBox">
       <div class="card">
         <select id="shift" onchange="updateShift()"><option>Pagi</option><option>Siang</option><option selected>Sore</option></select>
-        <div class="grid" id="tombolMenu" style="margin-top:12px"></div>
+        
+        <div class="judul-section">Pilih Menu & Rokok:</div>
+        <div class="grid" id="tombolMenu"></div>
       </div>
 
       <div class="card">
@@ -109,14 +113,28 @@ th{background:#0f172a}
     <!-- TAB MENU -->
     <div id="menuBox" class="hide">
       <div class="card">
-        <h3>Tambah Menu/Rokok</h3>
-        <select id="kategori"><option>Minuman</option><option>Rokok</option><option>Makanan</option></select>
-        <input id="nama" placeholder="Nama Menu/Rokok">
-        <input id="harga" type="number" placeholder="Harga">
-        <button class="btn btn-hijau" onclick="tambahMenu()">+ SIMPAN MENU</button>
+        <h3>Tambah Menu/Makanan</h3>
+        <input type="hidden" id="kategoriMenu" value="Menu">
+        <input id="namaMenu" placeholder="Nama Menu/Makanan">
+        <input id="hargaMenu" type="number" placeholder="Harga">
+        <button class="btn btn-hijau" onclick="tambahItem('menu')">+ SIMPAN MENU</button>
 
         <h3 style="margin-top:20px">Daftar Menu</h3>
         <div class="list" id="listMenu"></div>
+      </div>
+    </div>
+
+    <!-- TAB ROKOK -->
+    <div id="rokokBox" class="hide">
+      <div class="card">
+        <h3>Tambah Rokok</h3>
+        <input type="hidden" id="kategoriRokok" value="Rokok">
+        <input id="namaRokok" placeholder="Nama Rokok">
+        <input id="hargaRokok" type="number" placeholder="Harga">
+        <button class="btn btn-hijau" onclick="tambahItem('rokok')">+ SIMPAN ROKOK</button>
+
+        <h3 style="margin-top:20px">Daftar Rokok</h3>
+        <div class="list" id="listRokok"></div>
       </div>
     </div>
 
@@ -158,11 +176,11 @@ const TANGGAL_EXPIRED = '2026-12-31';
 const LISENSI = 'WKP-KBL-01';
 const HARGA_PERPANJANG = 200000;
 
-let DB = JSON.parse(localStorage.getItem('kaboel-final') || '{"menu":[],"trx":[]}');
+let DB = JSON.parse(localStorage.getItem('kaboel-final-v6') || '{"menu":[],"rokok":[],"trx":[]}');
 let cart = [];
 let kasir = 'An';
 
-function save(){ localStorage.setItem('kaboel-final', JSON.stringify(DB)); }
+function save(){ localStorage.setItem('kaboel-final-v6', JSON.stringify(DB)); }
 
 function cekExpired(){
   const sisa = Math.ceil((new Date(TANGGAL_EXPIRED) - new Date()) / (1000*60*60*24));
@@ -191,23 +209,36 @@ function updateShift(){ infoShift.innerText = shift.value; }
 function gantiTab(tab){
   tabKasir.className = tab==='kasir'?'active':'';
   tabMenu.className = tab==='menu'?'active':'';
+  tabRokok.className = tab==='rokok'?'active':'';
   tabLaporan.className = tab==='laporan'?'active':'';
   kasirBox.classList.toggle('hide',tab!=='kasir');
   menuBox.classList.toggle('hide',tab!=='menu');
+  rokokBox.classList.toggle('hide',tab!=='rokok');
   laporanBox.classList.toggle('hide',tab!=='laporan');
   if(tab==='laporan') renderLaporan();
 }
 
-function tambahMenu(){
-  const k = kategori.value, n = nama.value.trim(), h = parseInt(harga.value);
+function tambahItem(type){
+  const n = document.getElementById(type==='menu'?'namaMenu':'namaRokok').value.trim();
+  const h = parseInt(document.getElementById(type==='menu'?'hargaMenu':'hargaRokok').value);
+  const k = type==='menu'?'Menu':'Rokok';
   if(!n||!h) return alert('Isi nama & harga');
-  DB.menu.push({id:Date.now(),k,n,h}); save();
-  nama.value=''; harga.value=''; render();
+  if(type==='menu') DB.menu.push({id:Date.now(),k,n,h});
+  else DB.rokok.push({id:Date.now(),k,n,h});
+  save();
+  document.getElementById(type==='menu'?'namaMenu':'namaRokok').value='';
+  document.getElementById(type==='menu'?'hargaMenu':'hargaRokok').value='';
+  render();
 }
-function hapusMenu(id){ DB.menu = DB.menu.filter(m=>m.id!==id); save(); render(); }
+
+function hapusItem(type,id){ 
+  if(type==='menu') DB.menu = DB.menu.filter(m=>m.id!==id);
+  else DB.rokok = DB.rokok.filter(m=>m.id!==id);
+  save(); render(); 
+}
 
 function tambahKeCart(id){
-  const i = DB.menu.find(m=>m.id===id);
+  const i = [...DB.menu,...DB.rokok].find(m=>m.id===id);
   const ada = cart.find(c=>c.id===id);
   if(ada){ ada.qty++; } else { cart.push({...i,qty:1}); }
   render();
@@ -215,8 +246,9 @@ function tambahKeCart(id){
 function hapusDariCart(idx){ cart.splice(idx,1); render(); }
 
 function render(){
-  // Tombol menu 100% mirip Warkop Singo
-  tombolMenu.innerHTML = DB.menu.map(m=>`
+  // Gabung Menu + Rokok di Tab Kasir
+  const semuaItem = [...DB.menu,...DB.rokok];
+  tombolMenu.innerHTML = semuaItem.map(m=>`
     <button class="menu-btn" onclick="tambahKeCart(${m.id})">
       <div class="kategori">${m.k}</div>
       <div class="nama">${m.n}</div>
@@ -224,18 +256,29 @@ function render(){
     </button>
   `).join('') || '<p style="grid-column:span 2;text-align:center;opacity:.6">Menu kosong</p>';
 
-  // List menu di tab Menu
+  // List Menu
   listMenu.innerHTML = DB.menu.map(m=>`
     <div class="item-keranjang">
       <div class="item-atas">
-        <span><b>${m.k}</b> - ${m.n}</span>
-        <span class="hapus" onclick="hapusMenu(${m.id})">x</span>
+        <span>${m.n}</span>
+        <span class="hapus" onclick="hapusItem('menu',${m.id})">x</span>
       </div>
       <div class="item-bawah" style="color:var(--ijo-harga)">Rp ${m.h.toLocaleString('id-ID')}</div>
     </div>
   `).join('') || '<div class="item-keranjang">Kosong</div>';
 
-  // Keranjang 100% mirip Warkop Singo
+  // List Rokok
+  listRokok.innerHTML = DB.rokok.map(m=>`
+    <div class="item-keranjang">
+      <div class="item-atas">
+        <span>${m.n}</span>
+        <span class="hapus" onclick="hapusItem('rokok',${m.id})">x</span>
+      </div>
+      <div class="item-bawah" style="color:var(--ijo-harga)">Rp ${m.h.toLocaleString('id-ID')}</div>
+    </div>
+  `).join('') || '<div class="item-keranjang">Kosong</div>';
+
+  // Keranjang
   daftar.innerHTML = cart.map((i,k)=>`
     <div class="item-keranjang">
       <div class="item-atas">
@@ -294,7 +337,7 @@ function excel(){
   a.download = 'laporan-kaboel.csv'; a.click();
 }
 function waOwner(){ window.open(`https://wa.me/${WA_OWNER}`); }
-function hapusData(){ if(confirm('Hapus semua transaksi? Menu tidak ikut terhapus')){ DB.trx=[]; save(); renderLaporan(); } }
+function hapusData(){ if(confirm('Hapus semua transaksi? Menu & Rokok tidak ikut terhapus')){ DB.trx=[]; save(); renderLaporan(); } }
 
 cekExpired(); updateTgl();
 </script>
