@@ -85,7 +85,7 @@ th{background:#0f172a}
   <div class="tabs">
     <button id="tabKasir" class="active" onclick="gantiTab('kasir')">💰 Kasir</button>
     <button id="tabMenu" onclick="gantiTab('menu')">🍜 Menu</button>
-    <button id="tabRokok" onclick="gantiTab('rokok')">🚬 Rokok</button>
+    <button id="tabRokok" onclick="gantiTab('rokok')">Rokok</button>
     <button id="tabLaporan" onclick="gantiTab('laporan')">📊 Laporan</button>
   </div>
 
@@ -147,8 +147,8 @@ th{background:#0f172a}
         <div class="lisensi">
           <b>🔒 LISENSI AKTIF</b><br>
           Warkop: WARKOP KABOEL<br>
-          Aktif Sampai: <span id="tglExpired">31/12/2026</span><br>
-          Sisa: <span id="sisaHari">240</span> Hari<br>
+          Aktif Sampai: <span id="tglExpired">04/05/2026</span><br>
+          Sisa: <span id="sisaHari"></span> Hari<br>
           Owner: 0895351432524
         </div>
 
@@ -178,7 +178,7 @@ const WA_OWNER = '62895351432524';
 const TANGGAL_EXPIRED = '2026-12-31';
 const LISENSI = 'WKP-KBL-01';
 const HARGA_PERPANJANG = 200000;
-const KEY_DB = 'kaboel-final'; // KUNCI DB DIKUNCIIN BIAR GAK GANTI2
+const KEY_DB = 'kaboel-final';
 
 let DB = JSON.parse(localStorage.getItem(KEY_DB) || '{"menu":[],"rokok":[],"trx":[]}');
 let cart = [];
@@ -192,13 +192,12 @@ function cekExpired(){
   sisaHari.innerText = sisa > 0? sisa : 0;
   if(sisa <= 0){
     document.body.innerHTML = `<div class="wrap"><div class="card"><h2>Lisensi ${LISENSI} Expired</h2>
-    <button class="btn btn-hijau" onclick="window.open('https://wa.me/${WA_OWNER}?text=Mas mau perpanjang ${LISENSI} ${HARGA_PERPANJANG}/bulan')">PERPANJANG VIA WA</button></div></div>`;
+    <button class="btn btn-hijau" onclick="window.open('https://wa.me/${WA_OWNER}?text=Mas mau perpanjang ${LISENSI} ${HARGA_PERPANJANG}/bulan')">PERPANJANG VIA WA</button></div>`;
     return true;
   }
   return false;
 }
 
-// INI YG BIKIN GAK BALIK LOGIN KALO REFRESH
 function initApp(){
   if(cekExpired()) return;
   namaKasir.innerText = kasir;
@@ -207,7 +206,6 @@ function initApp(){
   updateTgl(); updateShift(); render();
 }
 
-// CEK PAS BUKA PERTAMA KALI
 if(localStorage.getItem('kaboel-login') === 'true'){
   initApp();
 } else {
@@ -319,6 +317,7 @@ function render(){
   total.innerText = cart.reduce((a,b)=>a+b.h*b.qty,0).toLocaleString('id-ID');
 }
 
+// UDAH GAK AUTO WA LAGI PROF
 function selesai(){
   if(!cart.length) return alert('Keranjang kosong');
   const now = new Date();
@@ -332,12 +331,9 @@ function selesai(){
     lunas: lunas.checked
   };
   DB.trx.push(t); save();
-
-  const itemStr = cart.map(i=>`${i.n} x${i.qty}`).join(', ');
-  const teks = `*${NAMA_WARKOP}*%0A${t.tgl} ${t.shift}%0AKasir: ${t.kasir}%0AItems: ${itemStr}%0ATotal: Rp ${t.total.toLocaleString('id-ID')}%0A${t.metode} | ${t.lunas?'LUNAS':'BELUM'}%0A${LISENSI}`;
-  window.open(`https://wa.me/${WA_OWNER}?text=${teks}`);
-
+  
   cart=[]; lunas.checked=false; render(); renderLaporan();
+  alert('Transaksi Berhasil Disimpan!');
 }
 
 function renderLaporan(){
@@ -353,7 +349,7 @@ function renderLaporan(){
 
 function excel(){
   let csv = 'Tanggal,Kasir,Shift,Menu,Qty,Harga,Subtotal,Bayar,Status\n';
-  DB.trx.forEach(t=> t.items.forEach(i=> csv += `"${t.tgl}",${t.kasir},${t.shift},"${i.n}",${i.qty},${i.h},${i.h*i.qty},${t.metode},${t.lunas?'LUNAS':'BELUM'}\n`));
+  DB.trx.forEach(t=> t.items.forEach(i=> csv += `"${t.tgl}",${t.kasir},${t.shift},"${i.n}",${i.qty},${i.h*i.qty},${t.metode},${t.lunas?'LUNAS':'BELUM'}\n`));
   const a = document.createElement('a');
   a.href = 'data:text/csv,' + encodeURIComponent(csv);
   a.download = 'laporan-kaboel.csv'; a.click();
@@ -364,4 +360,4 @@ function hapusData(){ if(confirm('Hapus semua transaksi? Menu & Rokok tidak ikut
 updateTgl();
 </script>
 </body>
-      </html>
+  </html>
