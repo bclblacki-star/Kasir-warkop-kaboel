@@ -2,228 +2,142 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kasir Warkop Kaboel</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kasir Kaboel</title>
 <style>
-:root{--bg:#0f172a;--card:#1e293b;--accent:#22c55e;--text:#e2e8f0;--red:#ef4444;--yellow:#f59e0b}
-*{box-sizing:border-box;font-family:system-ui,sans-serif}
-body{margin:0;background:var(--bg);color:var(--text);padding:12px}
-h2,h3{margin:8px 0}
-.card{background:var(--card);padding:12px;border-radius:12px;margin-bottom:12px}
-input,select,button{width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #334155;background:#0f172a;color:var(--text)}
-button{background:var(--accent);color:#000;font-weight:600;border:none;cursor:pointer}
-button:disabled{opacity:.5}
-.row{display:flex;gap:8px}
-.row > *{flex:1}
-.item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #334155}
+body{font-family:sans-serif;margin:0;padding:10px;background:#f2f2f2}
+.wrap{max-width:380px;margin:auto;background:#fff;padding:15px;border-radius:10px;box-shadow:0 2px 5px #ccc}
+h2{text-align:center;margin:0 0 15px}
+input,select,button{width:100%;padding:12px;margin:5px 0;font-size:16px;border:1px solid #ddd;border-radius:6px}
+button{background:#16a34a;color:#fff;border:none;font-weight:bold}
+.btn-red{background:#dc2626}
+.btn-blue{background:#2563eb}
+.list{border:1px solid #ddd;border-radius:6px;margin:8px 0;max-height:150px;overflow:auto}
+.item{padding:8px;border-bottom:1px solid #eee;display:flex;justify-content:space-between}
 .item:last-child{border:none}
-.badge{padding:2px 8px;border-radius:6px;font-size:12px}
-.badge-red{background:var(--red);color:#fff}
-.badge-green{background:var(--accent);color:#000}
-.badge-yellow{background:var(--yellow);color:#000}
+.total{font-size:20px;font-weight:bold;text-align:right;margin:10px 0}
 .hide{display:none}
-.flex{display:flex;justify-content:space-between;align-items:center}
-.small{font-size:12px;opacity:.7}
+.flex{display:flex;gap:5px}
+.flex > *{flex:1}
+.label{font-size:14px;margin-top:10px}
 </style>
 </head>
 <body>
-
-<div id="loginPage" class="card">
-  <h2>Login Kasir Warkop Kaboel</h2>
-  <input id="loginUser" placeholder="Username" value="kasir1">
-  <input id="loginPass" type="password" placeholder="Password" value="123">
-  <button onclick="login()">Masuk</button>
-  <p class="small">Lisensi: WKP-KBL-01</p>
+<div class="wrap" id="loginBox">
+  <h2>Kasir Warkop Kaboel</h2>
+  <input id="user" placeholder="Nama Kasir" value="kasir1">
+  <input id="pass" type="password" placeholder="Password" value="123">
+  <button onclick="masuk()">MASUK</button>
 </div>
 
-<div id="appPage" class="hide">
-  <div class="card flex">
-    <div>
-      <h2>Warkop Kaboel</h2>
-      <span class="small" id="infoUser"></span>
-    </div>
-    <div>
-      <button style="width:auto;background:var(--red)" onclick="logout()">Logout</button>
-    </div>
+<div class="wrap hide" id="kasirBox">
+  <div class="flex">
+    <h2 style="margin:0">KABOEL</h2>
+    <button class="btn-red" style="flex:.5" onclick="keluar()">Keluar</button>
   </div>
+  
+  <div class="label">Shift</div>
+  <select id="shift">
+    <option>Pagi</option><option>Siang</option><option>Sore</option>
+  </select>
 
-  <div class="card">
-    <h3>Transaksi Baru</h3>
-    <select id="shift">
-      <option value="Pagi">Shift Pagi</option>
-      <option value="Siang">Shift Siang</option>
-      <option value="Sore">Shift Sore</option>
-    </select>
-    <div class="row">
-      <select id="pilihItem"></select>
-      <button style="flex:.3" onclick="tambahKeKeranjang()">+</button>
-    </div>
-    <div id="keranjang"></div>
-    <div class="flex"><b>Total:</b><b id="total">0</b></div>
-    <select id="metode">
-      <option value="Cash">Cash</option>
-      <option value="QRIS">QRIS</option>
-    </select>
-    <label><input type="checkbox" id="statusBayar"> Pelanggan Sudah Bayar</label>
-    <button onclick="simpanTransaksi()">Simpan & Kirim Laporan WA</button>
+  <div class="label">Tambah Barang</div>
+  <div class="flex">
+    <input id="nama" placeholder="Nama">
+    <input id="harga" type="number" placeholder="Harga">
   </div>
+  <button onclick="tambah()">+ TAMBAH KE DAFTAR</button>
 
-  <div class="card">
-    <h3>Data Master</h3>
-    <div class="row">
-      <input id="namaMenu" placeholder="Nama Menu/Rokok">
-      <input id="hargaMenu" type="number" placeholder="Harga">
-    </div>
-    <div class="row">
-      <button onclick="tambahMenu('menu')">+ Menu</button>
-      <button onclick="tambahMenu('rokok')">+ Rokok</button>
-    </div>
-  </div>
+  <div class="label">Keranjang</div>
+  <div class="list" id="daftar"></div>
+  <div class="total">Total: <span id="total">0</span></div>
 
-  <div class="card">
-    <h3>Riwayat Hari Ini</h3>
-    <div id="riwayat"></div>
-    <button onclick="exportExcel()">Download Excel</button>
-  </div>
+  <select id="bayar">
+    <option value="Cash">Cash</option>
+    <option value="QRIS">QRIS</option>
+  </select>
+  
+  <label><input type="checkbox" id="lunas"> Sudah Bayar</label>
+  <button class="btn-blue" onclick="selesai()">SIMPAN & LAPOR WA OWNER</button>
+  <button onclick="excel()">DOWNLOAD LAPORAN</button>
 </div>
 
 <script>
 // KONFIG
+const WA = '62895351432524'; // 0895351432524
+const EXPIRED = '2026-12-31';
 const LISENSI = 'WKP-KBL-01';
-const WA_OWNER = '62895351432524'; // 0895351432524
-const HARGA_PERPANJANG = 200000;
-const TANGGAL_EXPIRED = '2026-12-31'; // GANTI TANGGAL EXPIRED LU
 
-// DB pake localStorage
-let DB = JSON.parse(localStorage.getItem('kaboel') || '{}');
-if(!DB.users) DB = {
-  users: [{u:'kasir1', p:'123'}],
-  menu: [],
-  rokok: [],
-  transaksi: []
-};
-saveDB();
+// DATA
+let DB = JSON.parse(localStorage.getItem('kaboel-simple') || '{"barang":[],"trx":[]}');
+let cart = [];
 
-function saveDB(){ localStorage.setItem('kaboel', JSON.stringify(DB)); }
+function save(){ localStorage.setItem('kaboel-simple', JSON.stringify(DB)); }
 
-// LISENSI
-function cekExpired(){
-  if(new Date() > new Date(TANGGAL_EXPIRED)){
-    const pesan = `Mas mau perpanjang lisensi ${LISENSI} dengan harga ${HARGA_PERPANJANG}/bulan. Kirim kemana?`;
-    const link = `https://wa.me/${WA_OWNER}?text=${encodeURIComponent(pesan)}`;
-    if(confirm('Lisensi Expired! Perpanjang sekarang?')) window.open(link);
-    return true;
-  }
-  return false;
+// CEK EXPIRED
+if(new Date() > new Date(EXPIRED)){
+  document.body.innerHTML = `<div class="wrap"><h2>Lisensi ${LISENSI} Expired</h2>
+  <button onclick="window.open('https://wa.me/${WA}?text=Mas mau perpanjang ${LISENSI} 200rb/bulan')">PERPANJANG VIA WA</button></div>`;
 }
 
 // LOGIN
-let currentUser = null;
-function login(){
-  if(cekExpired()) return;
-  const u = loginUser.value, p = loginPass.value;
-  if(DB.users.find(x=>x.u===u && x.p===p)){
-    currentUser = u;
-    loginPage.classList.add('hide');
-    appPage.classList.remove('hide');
-    infoUser.innerText = `Kasir: ${u} | Lisensi: ${LISENSI}`;
-    refreshAll();
-  } else alert('Login gagal');
+function masuk(){
+  if(user.value==='kasir1' && pass.value==='123'){
+    loginBox.classList.add('hide');
+    kasirBox.classList.remove('hide');
+    render();
+  } else alert('Salah');
+}
+function keluar(){
+  loginBox.classList.remove('hide');
+  kasirBox.classList.add('hide');
 }
 
-function logout(){
-  currentUser = null;
-  loginPage.classList.remove('hide');
-  appPage.classList.add('hide');
+// KASIR
+function tambah(){
+  const n = nama.value.trim(), h = parseInt(harga.value);
+  if(!n||!h) return alert('Isi nama & harga');
+  DB.barang.push({id:Date.now(),n,h});
+  save(); nama.value='';harga.value=''; 
+  cart.push({n,h}); render();
 }
 
-// MASTER DATA
-function tambahMenu(type){
-  if(cekExpired()) return;
-  const nama = namaMenu.value.trim();
-  const harga = parseInt(hargaMenu.value);
-  if(!nama ||!harga) return alert('Isi nama & harga');
-  DB[type].push({id:Date.now(), nama, harga});
-  saveDB(); namaMenu.value=''; hargaMenu.value='';
-  refreshAll();
+function render(){
+  daftar.innerHTML = cart.map((i,k)=>`
+    <div class="item">
+      <span>${i.n} ${i.h}</span>
+      <span onclick="cart.splice(${k},1);render()" style="color:red">x</span>
+    </div>
+  `).join('') || '<div class="item">Kosong</div>';
+  total.innerText = cart.reduce((a,b)=>a+b.h,0);
 }
 
-// TRANSAKSI
-let keranjang = [];
-function refreshAll(){
-  // Dropdown item
-  pilihItem.innerHTML = [...DB.menu,...DB.rokok].map(i=>
-    `<option value="${i.id}">${i.nama} - ${i.harga}</option>`
-  ).join('');
-
-  // Keranjang
-  keranjangDiv = document.getElementById('keranjang');
-  keranjangDiv.innerHTML = keranjang.map((i,k)=>
-    `<div class="item">${i.nama} ${i.harga} <span onclick="hapusItem(${k})" style="color:var(--red)">x</span></div>`
-  ).join('');
-  total.innerText = keranjang.reduce((a,b)=>a+b.harga,0);
-
-  // Riwayat
-  riwayat.innerHTML = DB.transaksi.slice().reverse().map(t=>
-    `<div class="item">
-      <div>${t.waktu} | ${t.shift} | ${t.total}
-        <span class="badge ${t.bayar?'badge-green':'badge-red'}">${t.bayar?'LUNAS':'BELUM'}</span>
-      </div>
-      <div class="badge badge-yellow">${t.metode}</div>
-    </div>`
-  ).join('') || '<p class="small">Belum ada transaksi</p>';
-}
-
-function tambahKeKeranjang(){
-  const id = parseInt(pilihItem.value);
-  const item = [...DB.menu,...DB.rokok].find(i=>i.id===id);
-  if(item) keranjang.push(item);
-  refreshAll();
-}
-
-function hapusItem(idx){
-  keranjang.splice(idx,1);
-  refreshAll();
-}
-
-function simpanTransaksi(){
-  if(cekExpired()) return;
-  if(!keranjang.length) return alert('Keranjang kosong');
-  const trx = {
-    id: Date.now(),
-    waktu: new Date().toLocaleTimeString('id-ID','Asia/Jakarta').slice(0,5),
+function selesai(){
+  if(!cart.length) return alert('Keranjang kosong');
+  const t = {
+    waktu: new Date().toLocaleTimeString('id-ID').slice(0,5),
     shift: shift.value,
-    items: [...keranjang],
-    total: keranjang.reduce((a,b)=>a+b.harga,0),
-    metode: metode.value,
-    bayar: statusBayar.checked,
-    kasir: currentUser
+    total: cart.reduce((a,b)=>a+b.h,0),
+    metode: bayar.value,
+    lunas: lunas.checked,
+    items: cart.map(i=>i.n).join(', ')
   };
-  DB.transaksi.push(trx); saveDB();
-
-  // Kirim WA Owner
-  const laporan = `*LAPORAN KABOEL*%0AShift: ${trx.shift}%0AKasir: ${trx.kasir}%0ATotal: ${trx.total}%0AMetode: ${trx.metode}%0AStatus: ${trx.bayar?'LUNAS':'BELUM BAYAR'}%0AJam: ${trx.waktu}`;
-  window.open(`https://wa.me/${WA_OWNER}?text=${laporan}`);
-
-  keranjang=[]; statusBayar.checked=false; refreshAll();
-  alert('Transaksi disimpan');
+  DB.trx.push(t); save();
+  
+  const teks = `*KABOEL*%0AJam: ${t.waktu} ${t.shift}%0AItems: ${t.items}%0ATotal: ${t.total}%0A${t.metode} | ${t.lunas?'LUNAS':'BELUM'}%0ALisensi: ${LISENSI}`;
+  window.open(`https://wa.me/${WA}?text=${teks}`);
+  
+  cart=[]; lunas.checked=false; render();
+  alert('Tersimpan');
 }
 
-// EXPORT EXCEL
-function exportExcel(){
-  if(cekExpired()) return;
-  let csv = 'Waktu,Shift,Kasir,Total,Metode,Status\n';
-  DB.transaksi.forEach(t=>{
-    csv += `${t.waktu},${t.shift},${t.kasir},${t.total},${t.metode},${t.bayar?'LUNAS':'BELUM'}\n`;
-  });
+function excel(){
+  let csv = 'Jam,Shift,Items,Total,Metode,Status\n';
+  DB.trx.forEach(t=> csv += `${t.waktu},${t.shift},"${t.items}",${t.total},${t.metode},${t.lunas?'LUNAS':'BELUM'}\n`);
   const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'laporan-kaboel.csv';
-  a.click();
+  a.href = 'data:text/csv,' + encodeURIComponent(csv);
+  a.download = 'kaboel.csv'; a.click();
 }
-
-// INIT
-if(cekExpired()) loginPage.innerHTML = '<h2>Lisensi Expired</h2><p>Hubungi WA: 0895351432524</p>';
 </script>
 </body>
   </html>
