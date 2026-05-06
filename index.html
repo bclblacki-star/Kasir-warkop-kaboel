@@ -178,12 +178,13 @@ const WA_OWNER = '62895351432524';
 const TANGGAL_EXPIRED = '2026-12-31';
 const LISENSI = 'WKP-KBL-01';
 const HARGA_PERPANJANG = 200000;
+const KEY_DB = 'kaboel-final'; // KUNCI DB DIKUNCIIN BIAR GAK GANTI2
 
-let DB = JSON.parse(localStorage.getItem('kaboel-final-v7') || '{"menu":[],"rokok":[],"trx":[]}');
+let DB = JSON.parse(localStorage.getItem(KEY_DB) || '{"menu":[],"rokok":[],"trx":[]}');
 let cart = [];
 let kasir = localStorage.getItem('kaboel-kasir') || 'An';
 
-function save(){ localStorage.setItem('kaboel-final-v7', JSON.stringify(DB)); }
+function save(){ localStorage.setItem(KEY_DB, JSON.stringify(DB)); }
 
 function cekExpired(){
   const sisa = Math.ceil((new Date(TANGGAL_EXPIRED) - new Date()) / (1000*60*60*24));
@@ -197,15 +198,21 @@ function cekExpired(){
   return false;
 }
 
-// AUTO LOGIN KALO UDAH PERNAH LOGIN
-window.onload = function(){
+// INI YG BIKIN GAK BALIK LOGIN KALO REFRESH
+function initApp(){
   if(cekExpired()) return;
-  if(localStorage.getItem('kaboel-login') === 'true'){
-    loginPage.classList.add('hide');
-    appPage.classList.remove('hide');
-    namaKasir.innerText = kasir;
-    updateTgl(); updateShift(); render();
-  }
+  namaKasir.innerText = kasir;
+  loginPage.classList.add('hide');
+  appPage.classList.remove('hide');
+  updateTgl(); updateShift(); render();
+}
+
+// CEK PAS BUKA PERTAMA KALI
+if(localStorage.getItem('kaboel-login') === 'true'){
+  initApp();
+} else {
+  loginPage.classList.remove('hide');
+  appPage.classList.add('hide');
 }
 
 function masuk(){
@@ -213,10 +220,7 @@ function masuk(){
   kasir = user.value || 'An';
   localStorage.setItem('kaboel-kasir', kasir);
   localStorage.setItem('kaboel-login', 'true');
-  namaKasir.innerText = kasir;
-  loginPage.classList.add('hide');
-  appPage.classList.remove('hide');
-  updateTgl(); updateShift(); render();
+  initApp();
 }
 
 function keluar(){ 
@@ -360,4 +364,4 @@ function hapusData(){ if(confirm('Hapus semua transaksi? Menu & Rokok tidak ikut
 updateTgl();
 </script>
 </body>
-          </html>
+      </html>
