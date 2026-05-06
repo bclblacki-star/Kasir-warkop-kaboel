@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kasir Warkop Kaboel</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--accent:#22c55e;--text:#e2e8f0;--red:#ef4444;--yellow:#f59e0b}
+*{box-sizing:border-box;font-family:system-ui,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text);padding:12px}
+h2,h3{margin:8px 0}
+.card{background:var(--card);padding:12px;border-radius:12px;margin-bottom:12px}
+input,select,button{width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #334155;background:#0f172a;color:var(--text)}
+button{background:var(--accent);color:#000;font-weight:600;border:none;cursor:pointer}
+button:disabled{opacity:.5}
+.row{display:flex;gap:8px}
+.row > *{flex:1}
+.item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #334155}
+.item:last-child{border:none}
+.badge{padding:2px 8px;border-radius:6px;font-size:12px}
+.badge-red{background:var(--red);color:#fff}
+.badge-green{background:var(--accent);color:#000}
+.badge-yellow{background:var(--yellow);color:#000}
+.hide{display:none}
+.flex{display:flex;justify-content:space-between;align-items:center}
+.small{font-size:12px;opacity:.7}
+</style>
+</head>
+<body>
+
+<div id="loginPage" class="card">
+  <h2>Login Kasir Warkop Kaboel</h2>
+  <input id="loginUser" placeholder="Username" value="kasir1">
+  <input id="loginPass" type="password" placeholder="Password" value="123">
+  <button onclick="login()">Masuk</button>
+  <p class="small">Lisensi: WKP-KBL-01</p>
+</div>
+
+<div id="appPage" class="hide">
+  <div class="card flex">
+    <div>
+      <h2>Warkop Kaboel</h2>
+      <span class="small" id="infoUser"></span>
+    </div>
+    <div>
+      <button style="width:auto;background:var(--red)" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Transaksi Baru</h3>
+    <select id="shift">
+      <option value="Pagi">Shift Pagi</option>
+      <option value="Siang">Shift Siang</option>
+      <option value="Sore">Shift Sore</option>
+    </select>
+    <div class="row">
+      <select id="pilihItem"></select>
+      <button style="flex:.3" onclick="tambahKeKeranjang()">+</button>
+    </div>
+    <div id="keranjang"></div>
+    <div class="flex"><b>Total:</b><b id="total">0</b></div>
+    <select id="metode">
+      <option value="Cash">Cash</option>
+      <option value="QRIS">QRIS</option>
+    </select>
+    <label><input type="checkbox" id="statusBayar"> Pelanggan Sudah Bayar</label>
+    <button onclick="simpanTransaksi()">Simpan & Kirim Laporan WA</button>
+  </div>
+
+  <div class="card">
+    <h3>Data Master</h3>
+    <div class="row">
+      <input id="namaMenu" placeholder="Nama Menu/Rokok">
+      <input id="hargaMenu" type="number" placeholder="Harga">
+    </div>
+    <div class="row">
+      <button onclick="tambahMenu('menu')">+ Menu</button>
+      <button onclick="tambahMenu('rokok')">+ Rokok</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Riwayat Hari Ini</h3>
+    <div id="riwayat"></div>
+    <button onclick="exportExcel()">Download Excel</button>
+  </div>
+</div>
+
+<script>
+// KONFIG
+const LISENSI = 'WKP-KBL-01';
+const WA_OWNER = '62895351432524'; // 0895351432524
+const HARGA_PERPANJANG = 200000;
+const TANGGAL_EXPIRED = '2026-12-31'; // GANTI TANGGAL EXPIRED LU
+
+// DB pake localStorage
+let DB = JSON.parse(localStorage.getItem('kaboel') || '{}');
+if(!DB.users) DB = {
+  users: [{u:'kasir1', p:'123'}],
+  menu: [],
+  rokok: [],
+  transaksi: []
+};
+saveDB();
+
+function saveDB(){ localStorage.setItem('kaboel', JSON.stringify(DB)); }
+
+// LISENSI
+function cekExpired(){
+  if(new Date() > new Date(TANGGAL_EXPIRED)){
+    const pesan = `Mas mau perpanjang lisensi ${LISENSI} dengan harga ${HARGA_PERPANJANG}/bulan. Kirim kemana?`;
+    const link = `https://wa.me/${WA_OWNER}?text=${encodeURIComponent(pesan)}`;
+    if(confirm('Lisensi Expired! Perpanjang sekarang?')) window.open(link);
+    return true;
+  }
+  return false;
+}
+
+// LOGIN
+let currentUser = null;
+function login(){
+  if(cekExpired()) return;
+  const u = loginUser.value, p = loginPass.value;
+  if(DB.users.find(x=>x.u===u && x.p===p)){
+    currentUser = u;
+    loginPage.classList.add('hide');
+    appPage.classList.remove('hide');
+    infoUser.innerText = `Kasir: ${u} | Lisensi: ${LISENSI}`;
+    refreshAll();
+  } else alert('Login gagal');
+}
+
+function logout(){
+  currentUser = null;
+  loginPage.classList.remove('hide');
+  appPage.classList.add('hide');
+}
+
+// MASTER DATA
+function tambahMenu(type){
+  if(cekExpired()) return;
+  const nama = namaMenu.value.trim();
+  const harga = parseInt(hargaMenu.value);
+  if(!nama ||!harga) return alert('Isi nama & harga');
+  DB[type].push({id:Date.now(), nama, harga});
+  saveDB(); namaMenu.value=''; hargaMenu.value='';
+  refreshAll();
+}
+
+// TRANSAKSI
+let keranjang = [];
+function refreshAll(){
+  // Dropdown item
+  pilihItem.innerHTML = [...DB.menu,...DB.rokok].map(i=>
+    `<option value="${i.id}">${i.nama} - ${i.harga}</option>`
+  ).join('');
+
+  // Keranjang
+  keranjangDiv = document.getElementById('keranjang');
+  keranjangDiv.innerHTML = keranjang.map((i,k)=>
+    `<div class="item">${i.nama} ${i.harga} <span onclick="hapusItem(${k})" style="color:var(--red)">x</span></div>`
+  ).join('');
+  total.innerText = keranjang.reduce((a,b)=>a+b.harga,0);
+
+  // Riwayat
+  riwayat.innerHTML = DB.transaksi.slice().reverse().map(t=>
+    `<div class="item">
+      <div>${t.waktu} | ${t.shift} | ${t.total}
+        <span class="badge ${t.bayar?'badge-green':'badge-red'}">${t.bayar?'LUNAS':'BELUM'}</span>
+      </div>
+      <div class="badge badge-yellow">${t.metode}</div>
+    </div>`
+  ).join('') || '<p class="small">Belum ada transaksi</p>';
+}
+
+function tambahKeKeranjang(){
+  const id = parseInt(pilihItem.value);
+  const item = [...DB.menu,...DB.rokok].find(i=>i.id===id);
+  if(item) keranjang.push(item);
+  refreshAll();
+}
+
+function hapusItem(idx){
+  keranjang.splice(idx,1);
+  refreshAll();
+}
+
+function simpanTransaksi(){
+  if(cekExpired()) return;
+  if(!keranjang.length) return alert('Keranjang kosong');
+  const trx = {
+    id: Date.now(),
+    waktu: new Date().toLocaleTimeString('id-ID','Asia/Jakarta').slice(0,5),
+    shift: shift.value,
+    items: [...keranjang],
+    total: keranjang.reduce((a,b)=>a+b.harga,0),
+    metode: metode.value,
+    bayar: statusBayar.checked,
+    kasir: currentUser
+  };
+  DB.transaksi.push(trx); saveDB();
+
+  // Kirim WA Owner
+  const laporan = `*LAPORAN KABOEL*%0AShift: ${trx.shift}%0AKasir: ${trx.kasir}%0ATotal: ${trx.total}%0AMetode: ${trx.metode}%0AStatus: ${trx.bayar?'LUNAS':'BELUM BAYAR'}%0AJam: ${trx.waktu}`;
+  window.open(`https://wa.me/${WA_OWNER}?text=${laporan}`);
+
+  keranjang=[]; statusBayar.checked=false; refreshAll();
+  alert('Transaksi disimpan');
+}
+
+// EXPORT EXCEL
+function exportExcel(){
+  if(cekExpired()) return;
+  let csv = 'Waktu,Shift,Kasir,Total,Metode,Status\n';
+  DB.transaksi.forEach(t=>{
+    csv += `${t.waktu},${t.shift},${t.kasir},${t.total},${t.metode},${t.bayar?'LUNAS':'BELUM'}\n`;
+  });
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'laporan-kaboel.csv';
+  a.click();
+}
+
+// INIT
+if(cekExpired()) loginPage.innerHTML = '<h2>Lisensi Expired</h2><p>Hubungi WA: 0895351432524</p>';
+</script>
+</body>
+  </html>
